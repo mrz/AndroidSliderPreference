@@ -19,8 +19,9 @@ import android.widget.SeekBar;
 public class SliderPreference extends DialogPreference {
 
 	protected final static int SEEKBAR_RESOLUTION = 10000;
-
-	protected float mValue;
+    protected float mMaxValue;
+    protected float mMinValue;
+    protected float mValue;
 	protected int mSeekBarValue;
 	protected CharSequence[] mSummaries;
 
@@ -47,7 +48,9 @@ public class SliderPreference extends DialogPreference {
 		setDialogLayoutResource(R.layout.slider_preference_dialog);
 		TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.SliderPreference);
 		try {
-			setSummary(a.getTextArray(R.styleable.SliderPreference_android_summary));
+            setMinValue(a.getFloat(R.styleable.SliderPreference_minValue, 0));
+            setMaxValue(a.getFloat(R.styleable.SliderPreference_maxValue, 1));
+			setSummary(a.getTextArray(R.styleable.SliderPreference_summary));
 		} catch (Exception e) {
 			// Do nothing
 		}
@@ -75,10 +78,6 @@ public class SliderPreference extends DialogPreference {
 		}
 	}
 
-	public void setSummary(CharSequence[] summaries) {
-		mSummaries = summaries;
-	}
-
 	@Override
 	public void setSummary(CharSequence summary) {
 		super.setSummary(summary);
@@ -94,27 +93,49 @@ public class SliderPreference extends DialogPreference {
 		}
 	}
 
+	public void setSummary(CharSequence[] summaries) {
+		mSummaries = summaries;
+	}
+
 	public float getValue() {
 		return mValue;
 	}
 
-	public void setValue(float value) {
-		value = Math.max(0, Math.min(value, 1)); // clamp to [0, 1]
+    public void setValue(float value) {
+		value = Math.max(mMinValue, Math.min(value, mMaxValue)); // clamp to [minValue, maxValue]
+
+        if (value != mValue) {
+            mValue = value;
+            notifyChanged();
+        }
+
 		if (shouldPersist()) {
 			persistFloat(value);
 		}
-		if (value != mValue) {
-			mValue = value;
-			notifyChanged();
-		}
 	}
+
+    public float getMinValue() {
+        return mMinValue;
+    }
+
+    public void setMinValue(float minValue) {
+        this.mMinValue = minValue;
+    }
+
+    public float getMaxValue() {
+        return mMaxValue;
+    }
+
+    public void setMaxValue(float maxValue) {
+        this.mMaxValue = maxValue;
+    }
 
 	@Override
 	protected View onCreateDialogView() {
 		mSeekBarValue = (int) (mValue * SEEKBAR_RESOLUTION);
 		View view = super.onCreateDialogView();
 		SeekBar seekbar = (SeekBar) view.findViewById(R.id.slider_preference_seekbar);
-		seekbar.setMax(SEEKBAR_RESOLUTION);
+        seekbar.setMax((int)(mMaxValue *  SEEKBAR_RESOLUTION));
 		seekbar.setProgress(mSeekBarValue);
 		seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 
