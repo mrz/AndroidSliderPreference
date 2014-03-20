@@ -1,6 +1,7 @@
 buildscript {
     repositories {
         mavenCentral()
+        mavenLocal()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:0.9.+'
@@ -8,6 +9,10 @@ buildscript {
 }
 
 apply plugin: 'android-library'
+apply plugin: 'maven'
+
+version = VERSION
+group = GROUP
 
 android {
   compileSdkVersion 19
@@ -19,5 +24,14 @@ android {
       java.srcDirs = ['src']
       res.srcDirs = ['res']
     }
+  }
+}
+
+uploadArchives {
+  repositories.mavenDeployer {
+       repository(url: "file:maven-repository/")
+                    pom.groupId = GROUP
+                    pom.artifactId = ARTIFACT_ID
+                    pom.version = VERSION
   }
 }
